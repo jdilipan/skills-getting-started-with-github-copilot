@@ -86,13 +86,6 @@ section h3 {
 }
 
 .participants-list {
-  list-style-type: disc;
-  padding-left: 25px;
-  margin: 0;
-}
-
-
-.participants-list {
   margin: 0 0 0 1em;
   padding: 0;
   list-style: none;
@@ -118,7 +111,6 @@ section h3 {
 }
 .delete-participant:hover {
   color: #f33;
-}
 }
 
 .participant-email {
