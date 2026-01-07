@@ -5,7 +5,7 @@ A super simple FastAPI application that allows students to view and sign up
 for extracurricular activities at Mergington High School.
 """
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 import os
@@ -133,8 +133,6 @@ async def signup_for_activity(activity_name: str, req: SignupRequest):
 
 
 # New endpoint to unregister a participant
-from fastapi import Query
-
 @app.delete("/activities/{activity_name}/unregister")
 def unregister_from_activity(activity_name: str, email: str = Query(...)):
     """Remove a participant from an activity by email"""
