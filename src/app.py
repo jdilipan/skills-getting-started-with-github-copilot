@@ -5,7 +5,7 @@ A super simple FastAPI application that allows students to view and sign up
 for extracurricular activities at Mergington High School.
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 import os
@@ -112,22 +112,37 @@ def get_activities():
     return activities
 
 
+
+
+from pydantic import BaseModel
+
+class SignupRequest(BaseModel):
+    name: str
+    email: str
+
 @app.post("/activities/{activity_name}/signup")
-def signup_for_activity(activity_name: str, email: str):
+async def signup_for_activity(activity_name: str, req: SignupRequest):
     """Sign up a student for an activity"""
-    # Validate activity exists
     if activity_name not in activities:
         raise HTTPException(status_code=404, detail="Activity not found")
-
-    # Get the specific activity
     activity = activities[activity_name]
-    # Validate student is not already signed up
-    if any(p["email"] == email for p in activity["participants"]):
+    if any(p["email"] == req.email for p in activity["participants"]):
         raise HTTPException(status_code=400, detail="Student already signed up for this activity")
-    
-    # Extract name from email (simple approach)
-    name = email.split('@')[0].replace('.', ' ').title()
-    
-    # Add student
-    activity["participants"].append({"name": name, "email": email})
-    return {"message": f"Signed up {email} for {activity_name}"}
+    activity["participants"].append({"name": req.name, "email": req.email})
+    return {"message": f"Signed up {req.email} for {activity_name}"}
+
+
+# New endpoint to unregister a participant
+from fastapi import Query
+
+@app.delete("/activities/{activity_name}/unregister")
+def unregister_from_activity(activity_name: str, email: str = Query(...)):
+    """Remove a participant from an activity by email"""
+    if activity_name not in activities:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    activity = activities[activity_name]
+    before_count = len(activity["participants"])
+    activity["participants"] = [p for p in activity["participants"] if p["email"] != email]
+    if len(activity["participants"]) == before_count:
+        raise HTTPException(status_code=404, detail="Participant not found")
+    return {"message": f"Unregistered {email} from {activity_name}"}
