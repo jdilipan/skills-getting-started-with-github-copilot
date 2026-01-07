@@ -5,11 +5,12 @@ A super simple FastAPI application that allows students to view and sign up
 for extracurricular activities at Mergington High School.
 """
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 import os
 from pathlib import Path
+from pydantic import BaseModel
 
 app = FastAPI(title="Mergington High School API",
               description="API for viewing and signing up for extracurricular activities")
@@ -102,6 +103,11 @@ activities = {
 }
 
 
+class SignupRequest(BaseModel):
+    name: str
+    email: str
+
+
 @app.get("/")
 def root():
     return RedirectResponse(url="/static/index.html")
@@ -111,14 +117,6 @@ def root():
 def get_activities():
     return activities
 
-
-
-
-from pydantic import BaseModel
-
-class SignupRequest(BaseModel):
-    name: str
-    email: str
 
 @app.post("/activities/{activity_name}/signup")
 async def signup_for_activity(activity_name: str, req: SignupRequest):
@@ -131,9 +129,6 @@ async def signup_for_activity(activity_name: str, req: SignupRequest):
     activity["participants"].append({"name": req.name, "email": req.email})
     return {"message": f"Signed up {req.email} for {activity_name}"}
 
-
-# New endpoint to unregister a participant
-from fastapi import Query
 
 @app.delete("/activities/{activity_name}/unregister")
 def unregister_from_activity(activity_name: str, email: str = Query(...)):
